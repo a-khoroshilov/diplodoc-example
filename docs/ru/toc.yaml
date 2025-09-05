@@ -7,6 +7,13 @@ items:
     href: page.md
   - name: Другая страница
     href: anotherpage.md
+  - name: OpenAPI
+    include:
+        path: rfl-api-doc-1-0-18
+        includers:
+          - name: openapi
+            input: rfl-api-doc-1-0-18-0904.yaml
+        mode: link
   - name: Подраздел
     include:
       path: sub-section/toc.yaml

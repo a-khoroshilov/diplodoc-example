@@ -1,0 +1,1893 @@
+openapi: 3.0.3
+info:
+  title: RFL API doc
+  version: 1.0.18-0904
+  description: |
+    _Редакция от 2025.09.04_
+
+    [Все версии](./)
+
+    [Справочники](https://freshlogic.bitrix24.ru/~JFlWr)
+
+    ## Основные положения
+
+    ### Как пользоваться
+
+    Несмотря на использование нотации OpenAPI эта документация к асинхронному обмену через очереди сообщений, а не классическому WEB-API.
+    Сообщения по AMQP-протоколу отправляются через исходящий канал, а забираются из входящего.
+
+    **1С:Предприятие** имеет встроенный коннектор - объект метаданных **СервисИнтеграции**.  
+    Для подключения **прочих систем** смотрите **[пример подключения](http://esb.fresh-logic.ru:9099/amqp-connection-test.html)**.
+
+    У каждого сообщения есть параметры и тело. 
+    В параметрах указывается тип сообщения. Типы сообщений указаны в именах API-методов OpenAPI. Их необходимо указывать в параметре **MessageType**.  
+    Сообщения помеченые как POST - отдаются в исходящий канал.  
+    Сообщения помеченые как PATCH - забираются из входящего канала.
+
+    Для сопоставления ответа с запросом используется параметр **ClientMessageId** который необходимо задавать при формировании запроса.
+
+    Редактирующие запросы (в наименовании есть **set** или **update**) реализуют следующие подходы:
+    - **Upsert**  
+      Если объект не существует, он будет создан. Поиск осуществляется по переданному ключу (поле id или другое подписанное как ключ в описании).  
+    - **Partial set**  
+      Если существует тогда обновятся только переданные поля.
+
+    ### Справочники
+
+    В некоторых полях указано, что используется значение согласно **Справочнику**.  
+    **[Файл](https://freshlogic.bitrix24.ru/~JFlWr)** содержит несколько **вкладок** каждая из которых соответствующий **Справочник**.  
+    E-mail по вопросам справочников: uhin@fresh-logic.ru
+tags:
+  - name: Приемка
+  - name: Отгрузка
+  - name: Номенклатура
+  - name: Отчеты
+  - name: Прочее
+  - name: '--------'
+paths:
+  /AcceptanceUpdate:
+    post:
+      tags:
+        - Приемка
+      summary: Задать приемку
+      description: |
+        ## AcceptanceUpdate
+        Запрос используется для изменения (создания) ожидаемой приемки.
+      parameters:
+        - name: MessageType
+          in: query
+          required: true
+          description: Тип сообщения
+          schema:
+            type: string
+            enum:
+              - AcceptanceUpdate
+        - $ref: '#/components/parameters/AreaCode'
+        - $ref: '#/components/parameters/ClientCode'
+        - $ref: '#/components/parameters/ClientMessageId'
+        - $ref: '#/components/parameters/ApiVersion'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcceptanceUpdate_form'
+            example:
+              ClientIdDocument: '1'
+              NumberCis: '2'
+              DateCis: '2024-01-16'
+              Counterparty:
+                Name: ТестовыйКонтрагент
+                Inn: '9717146987'
+                Kpp: '771701001'
+              Description: Тестовая загрузка ОП
+              DateIn: '2024-01-16'
+              TransportVehicle:
+                GosNumberTs: РФЛ77788
+                TypeTsCode: some-code
+              OrdersCis: ''
+              SourceReceipts: '02'
+              CargoSpace: false
+              MarkedDeletions: false
+              Quarantine: false
+              Items:
+                - Nomenklature:
+                    CodeCis: Ab-0001
+                    Name: XXXX
+                    Article: XXXX
+                  MarkedDeletions: false
+                  ItemCondition: ''
+                  PartyNomenclature:
+                    CodeCis: XXXXX
+                    DateExpiration: '2024-01-16'
+                    PartyNumberCis: '2024-01-16'
+                    Name: XXXXX
+                    DateProduction: '2024-01-16'
+                  PackagingCis: '001'
+                  ContainerNumber: 0
+                  PackagingCount: 200
+                  Count: 200
+                  Price: 15
+                  IdSpecification: 0
+                  Stickers: false
+                  CodeCmt:
+                    - BarcodeContainer: '246333340000658847'
+                      TransportPackage:
+                        - BarcodeTransportPackage: '0104603934001172215sJ1mtF:hg8Gy'
+                          Marking:
+                            - 010460393400075521517peibakIX=j
+                            - 0104603934000755215skD*VPRCsNBN
+                            - 010460393400075521517peibakIX=j
+                            - 010460393400075521517peibakIX=j
+                            - 010460393400075521517peibakIX=j
+                            - 010460393400075521517peibakIX=j
+                            - 010460393400075521517peibakIX=j
+                        - BarcodeTransportPackage: 0104603934001172215s6**XcD>ugq
+                          Marking:
+                            - 010460393400075521517peibakIX=j
+                            - 0104603934000755215skD*VPRCsNBN
+                            - 010460393400075521517peibakIX=j
+                            - 010460393400075521517peibakIX=j
+                            - 010460393400075521517peibakIX=j
+                            - 010460393400075521517peibakIX=j
+                            - 010460393400075521517peibakIX=j
+        required: true
+      responses:
+        '200':
+          description: Успешная операция
+  /AcceptanceChangedEvent:
+    patch:
+      tags:
+        - Приемка
+      summary: Приемка изменена
+      description: |
+        ## AcceptanceChangedEvent
+        Событие возникает при изменении данных в приемке.
+      parameters:
+        - name: MessageType
+          in: query
+          required: true
+          description: Тип сообщения
+          schema:
+            type: string
+            enum:
+              - AcceptanceChangedEvent
+        - $ref: '#/components/parameters/AreaCode'
+        - $ref: '#/components/parameters/ClientCode'
+        - $ref: '#/components/parameters/ApiVersion'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcceptanceChangedEvent_form'
+        required: true
+      responses:
+        '200':
+          description: Успешная операция
+  /ChangeAcceptanceQuarantineRequest:
+    post:
+      tags:
+        - Приемка
+      summary: Задать карантин приемки
+      description: |
+        ## ChangeAcceptanceQuarantineRequest
+        Запрос используется для изменения признака карантина у приемки.
+      parameters:
+        - name: MessageType
+          in: query
+          required: true
+          description: Тип сообщения
+          schema:
+            type: string
+            enum:
+              - ChangeAcceptanceQuarantineRequest
+        - $ref: '#/components/parameters/AreaCode'
+        - $ref: '#/components/parameters/ClientCode'
+        - $ref: '#/components/parameters/ClientMessageId'
+        - $ref: '#/components/parameters/ApiVersion'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangeAcceptanceQuarantineRequest'
+        required: true
+      responses:
+        '200':
+          description: Успешная операция
+  /updateShipmentOrder:
+    post:
+      tags:
+        - Отгрузка
+      summary: Задать отгрузку
+      description: |
+        ## updateShipmentOrder
+        Запрос используется для изменения (создания) заказа на отгрузку.
+      parameters:
+        - name: MessageType
+          in: query
+          required: true
+          description: Тип сообщения
+          schema:
+            type: string
+            enum:
+              - updateShipmentOrder
+        - $ref: '#/components/parameters/AreaCode'
+        - $ref: '#/components/parameters/ClientCode'
+        - $ref: '#/components/parameters/ClientMessageId'
+        - $ref: '#/components/parameters/ApiVersion'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateShipmentOrderRequest'
+        required: true
+      responses:
+        '200':
+          description: Успешная операция
+  /approveShipmentOrder:
+    post:
+      tags:
+        - Отгрузка
+      summary: Разрешить отгрузку
+      description: |
+        ## approveShipmentOrder
+        Запрос используется для разрешения отгрузки.
+      parameters:
+        - $ref: '#/components/parameters/ClientCode'
+        - $ref: '#/components/parameters/AreaCode'
+        - $ref: '#/components/parameters/ClientMessageId'
+        - $ref: '#/components/parameters/ApiVersion'
+        - name: MessageType
+          in: query
+          required: true
+          description: Тип сообщения
+          schema:
+            type: string
+            enum:
+              - approveShipmentOrder
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApproveShipmentOrderRequest'
+        required: true
+      responses:
+        '200':
+          description: Успешная операция
+  /ShipmentOrderChangedEvent:
+    patch:
+      tags:
+        - Отгрузка
+      summary: Отгрузка изменена
+      description: |
+        ## ShipmentOrderChangedEvent
+        Событие возникает при изменении данных в отгрузке.
+      parameters:
+        - name: MessageType
+          in: query
+          required: true
+          description: Тип сообщения
+          schema:
+            type: string
+            enum:
+              - ShipmentOrderChangedEvent
+        - $ref: '#/components/parameters/AreaCode'
+        - $ref: '#/components/parameters/ClientCode'
+        - $ref: '#/components/parameters/ApiVersion'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShipmentOrderChangedEvent'
+        required: true
+      responses:
+        '200':
+          description: Успешная операция
+  /updateTrip:
+    post:
+      tags:
+        - Отгрузка
+      summary: Задать маршрут
+      description: |
+        ## updateTrip
+        Запрос используется для изменения (создания) маршрута. Маршрут служит для отправления на одной машине нескольких отгрузок.
+      parameters:
+        - $ref: '#/components/parameters/ClientCode'
+        - $ref: '#/components/parameters/AreaCode'
+        - $ref: '#/components/parameters/ClientMessageId'
+        - $ref: '#/components/parameters/ApiVersion'
+        - name: MessageType
+          in: query
+          required: true
+          description: Тип сообщения
+          schema:
+            type: string
+            enum:
+              - updateTrip
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTripRequest'
+        required: true
+      responses:
+        '200':
+          description: Успешная операция
+  /StockItemUpdate:
+    post:
+      tags:
+        - Номенклатура
+      summary: Задать номенклатуру
+      description: |
+        ## StockItemUpdate
+        Запрос используется для изменения (добавления) номенклатуры.
+      parameters:
+        - name: MessageType
+          in: query
+          required: true
+          description: Тип сообщения
+          schema:
+            type: string
+            enum:
+              - StockItemUpdate
+        - $ref: '#/components/parameters/AreaCode'
+        - $ref: '#/components/parameters/ClientCode'
+        - $ref: '#/components/parameters/ClientMessageId'
+        - $ref: '#/components/parameters/ApiVersion'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StockItemUpdate_form'
+            example:
+              CodeCis: Ab-0003
+              Article: article123
+              IsGroup: false
+              Name: Конфеты Raffaello 150г
+              Gtin: '4008400181523'
+              NomenclatureType: '230'
+              UnitCode: 796
+              ReserveExpiration: 180
+              Description: тестовый коммент1
+              Complect: false
+              Weight: 1.587
+              ReserveExpirationMin: 5
+              ModelAccounting: '10'
+              Volume: 5.98
+              SeasonalRatioAbc: 89e100505692cb4611efb6380da41655
+              TermSave: 365
+              PackagingBaseCis: '001'
+              Price: 10
+              Barcode: '4607009520087'
+        required: true
+      responses:
+        '200':
+          description: Успешная операция
+  /setPackaging:
+    post:
+      tags:
+        - Номенклатура
+      summary: Задать упаковку номенклатуры
+      description: |
+        ## setPackaging
+        Запрос используется для изменения (добавления) упаковки номенклатуры.
+      parameters:
+        - $ref: '#/components/parameters/ClientCode'
+        - $ref: '#/components/parameters/AreaCode'
+        - $ref: '#/components/parameters/ClientMessageId'
+        - $ref: '#/components/parameters/ApiVersion'
+        - name: MessageType
+          in: query
+          required: true
+          description: Тип сообщения
+          schema:
+            type: string
+            enum:
+              - setPackaging
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Packaging'
+        required: true
+      responses:
+        '200':
+          description: Успешная операция
+  /getStockBalances:
+    post:
+      tags:
+        - Отчеты
+      summary: Получить остатки на складе
+      description: |
+        ## getStockBalances
+        Запрос используется для получения отчета об остатках номенклатуры на складе. В ответе будет объект типа **GetStockBalancesResponse**.
+      parameters:
+        - name: MessageType
+          in: query
+          required: true
+          description: Тип сообщения
+          schema:
+            type: string
+            enum:
+              - getStockBalances
+        - $ref: '#/components/parameters/AreaCode'
+        - $ref: '#/components/parameters/ClientCode'
+        - $ref: '#/components/parameters/ClientMessageId'
+        - $ref: '#/components/parameters/ApiVersion'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetStockBalancesRequest'
+        required: true
+      responses:
+        '200':
+          description: Успешная операция
+  /setBatch:
+    post:
+      tags:
+        - Прочее
+      summary: Задать партию
+      description: |
+        ## setBatch
+        Запрос используется для изменения (создания) партии.
+      parameters:
+        - $ref: '#/components/parameters/ClientCode'
+        - $ref: '#/components/parameters/AreaCode'
+        - $ref: '#/components/parameters/ClientMessageId'
+        - $ref: '#/components/parameters/ApiVersion'
+        - name: MessageType
+          in: query
+          required: true
+          description: Тип сообщения
+          schema:
+            type: string
+            enum:
+              - setBatch
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetBatchRequest'
+        required: true
+      responses:
+        '200':
+          description: Успешная операция
+  /SetContainerRequest:
+    post:
+      tags:
+        - Прочее
+      summary: Задать контейнер
+      description: |
+        ## SetContainerRequest
+        Запрос используется для изменения (создания) контейнера.
+      parameters:
+        - $ref: '#/components/parameters/ClientCode'
+        - $ref: '#/components/parameters/AreaCode'
+        - $ref: '#/components/parameters/ClientMessageId'
+        - $ref: '#/components/parameters/ApiVersion'
+        - name: MessageType
+          in: query
+          required: true
+          description: Тип сообщения
+          schema:
+            type: string
+            enum:
+              - SetContainerRequest
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetContainerRequest'
+        required: true
+      responses:
+        '200':
+          description: Успешная операция
+  /GetNewChzKituExtRequest:
+    patch:
+      tags:
+        - Прочее
+      summary: Получить новые ЧЗ КИТУ
+      description: |
+        ## GetNewChzKituExtRequest
+        Внешний запрос используется с целью получения от клиента новых 
+        [ЧЗ КИТУ](https://markirovka.ru/community/best-practics/agregatsiya-tovarov-s-markirovkoy-chestnyy-znak) 
+        которые позволят на складе агрегировать сборные паллеты.
+      parameters:
+        - name: MessageType
+          in: query
+          required: true
+          description: Тип сообщения
+          schema:
+            type: string
+            enum:
+              - GetNewChzKituExtRequest
+        - $ref: '#/components/parameters/AreaCode'
+        - $ref: '#/components/parameters/ClientCode'
+        - $ref: '#/components/parameters/ClientMessageId'
+        - $ref: '#/components/parameters/ApiVersion'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetNewChzKituExtRequest'
+        required: true
+      responses:
+        '200':
+          description: Успешная операция
+  /GetNewChzKituExtReply:
+    post:
+      tags:
+        - Прочее
+      summary: Получить новые ЧЗ КИТУ (ответ)
+      description: |
+        ## GetNewChzKituExtReply
+        Внешний ответ используется для передачи на склад новых 
+        [ЧЗ КИТУ](https://markirovka.ru/community/best-practics/agregatsiya-tovarov-s-markirovkoy-chestnyy-znak).
+      parameters:
+        - name: MessageType
+          in: query
+          required: true
+          description: Тип сообщения
+          schema:
+            type: string
+            enum:
+              - GetNewChzKituExtReply
+        - $ref: '#/components/parameters/AreaCode'
+        - $ref: '#/components/parameters/ClientCode'
+        - $ref: '#/components/parameters/ClientMessageId'
+        - $ref: '#/components/parameters/ApiVersion'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetNewChzKituExtReply'
+        required: true
+      responses:
+        '200':
+          description: Успешная операция
+  /Response:
+    patch:
+      summary: Ответ на запрос
+      description: |
+        ## Response
+        Ответ на исходное сообщение.
+
+        200, 400, 403, 500 StatusCode - Error contains string  
+        424 StatusCode - Error contains StockItemNotFoundError
+      parameters:
+        - name: MessageType
+          in: query
+          required: true
+          description: Тип сообщения
+          schema:
+            type: string
+            enum:
+              - Response
+        - name: RequestMessageType
+          in: query
+          required: true
+          description: Тип сообщения с запросом
+          schema:
+            type: string
+        - $ref: '#/components/parameters/AreaCode'
+        - $ref: '#/components/parameters/ClientCode'
+        - $ref: '#/components/parameters/ClientMessageId'
+        - $ref: '#/components/parameters/ApiVersion'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Response_form'
+        required: true
+      responses:
+        '200':
+          description: Успешная операция
+  /__schemas__:
+    head:
+      summary: Схемы
+      description: '**Не метод API** (используется для просмотра схем используемых в API объектов).'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                AcceptanceUpdate_form:
+                  $ref: '#/components/schemas/AcceptanceUpdate_form'
+                ChangeAcceptanceQuarantineRequest:
+                  $ref: '#/components/schemas/ChangeAcceptanceQuarantineRequest'
+                AcceptanceChangedEvent_form:
+                  $ref: '#/components/schemas/AcceptanceChangedEvent_form'
+                UpdateShipmentOrderRequest:
+                  $ref: '#/components/schemas/UpdateShipmentOrderRequest'
+                ApproveShipmentOrderRequest:
+                  $ref: '#/components/schemas/ApproveShipmentOrderRequest'
+                ShipmentOrderChangedEvent:
+                  $ref: '#/components/schemas/ShipmentOrderChangedEvent'
+                StockItemUpdate_form:
+                  $ref: '#/components/schemas/StockItemUpdate_form'
+                ErrorTypeEnum:
+                  $ref: '#/components/schemas/ErrorTypeEnum'
+                ShipmentFormEnum:
+                  $ref: '#/components/schemas/ShipmentFormEnum'
+                StockItemNotFoundError:
+                  $ref: '#/components/schemas/StockItemNotFoundError'
+                Error:
+                  $ref: '#/components/schemas/Error'
+                StatusCodeEnum:
+                  $ref: '#/components/schemas/StatusCodeEnum'
+                Response_form:
+                  $ref: '#/components/schemas/Response_form'
+                GetStockBalancesRequest:
+                  $ref: '#/components/schemas/GetStockBalancesRequest'
+                GetStockBalancesResponse:
+                  $ref: '#/components/schemas/GetStockBalancesResponse'
+                GetNewChzKituExtRequest:
+                  $ref: '#/components/schemas/GetNewChzKituExtRequest'
+                GetNewChzKituExtReply:
+                  $ref: '#/components/schemas/GetNewChzKituExtReply'
+                Counterparty:
+                  $ref: '#/components/schemas/Counterparty'
+                StockItem:
+                  $ref: '#/components/schemas/StockItem'
+                CodeCmt:
+                  $ref: '#/components/schemas/CodeCmt'
+                Vehicle:
+                  $ref: '#/components/schemas/Vehicle'
+                UpdateTripRequest:
+                  $ref: '#/components/schemas/UpdateTripRequest'
+                Packaging:
+                  $ref: '#/components/schemas/Packaging'
+                SetBatchRequest:
+                  $ref: '#/components/schemas/SetBatchRequest'
+                Task:
+                  $ref: '#/components/schemas/Task'
+                SetContainerRequest:
+                  $ref: '#/components/schemas/SetContainerRequest'
+      responses:
+        '200':
+          description: Успешная операция
+components:
+  parameters:
+    AreaCode:
+      name: AreaCode
+      description: Код площадки
+      in: query
+      required: true
+      schema:
+        type: string
+        example: TST90
+    ClientCode:
+      name: ClientCode
+      description: Код клиента
+      in: query
+      required: true
+      schema:
+        type: string
+        example: GEELY
+    ClientMessageId:
+      name: ClientMessageId
+      description: ИД который будет присутствовать в ответном сообщении. Служит для сопоставления ответа с исходным сообщением.
+      in: query
+      required: true
+      schema:
+        type: string
+        example: 3dfd000f-0561-4e01-aafa-7f0cda169845
+    ApiVersion:
+      name: ApiVersion
+      description: Версия API
+      in: query
+      required: true
+      schema:
+        type: string
+        example: 1.0.18
+  schemas:
+    AcceptanceUpdate_form:
+      title: AcceptanceUpdate_form
+      description: Приемка - Запрос создания/обновления
+      type: object
+      required:
+        - ClientIdDocument
+        - NumberCis
+        - DateCis
+        - Counterparty
+        - PlanDateIn
+      properties:
+        ClientIdDocument:
+          type: string
+          description: Номер документа
+        NumberCis:
+          type: string
+          description: НомерКИС
+          maxLength: 25
+        DateCis:
+          type: string
+          description: Дата КИС
+          format: date
+        Counterparty:
+          description: Контрагент
+          allOf:
+            - $ref: '#/components/schemas/Counterparty'
+        Description:
+          type: string
+          description: Комментарий
+        PlanDateIn:
+          type: string
+          format: date
+          description: Плановая дата поступления
+        DateIn:
+          type: string
+          format: date
+          description: Дата поступления
+        TransportVehicle:
+          type: object
+          description: Транспортное средство
+          required:
+            - GosNumberTs
+            - TypeTsCode
+          properties:
+            GosNumberTs:
+              description: Гос номер ТС
+              type: string
+            TypeTsCode:
+              description: 'Код типа ТС (Код типа , набор значений фиксирован)'
+              type: string
+        OrdersCis:
+          type: string
+          description: Заказ на отгрузку (идентификатор)
+        SourceReceipts:
+          type: string
+          description: Источник поступления (поле Код справочника Источники поступления)
+        CargoSpace:
+          type: boolean
+          description: Приемка по грузовым местам
+        MarkedDeletions:
+          type: boolean
+          description: Пометка удаления
+          default: false
+        Quarantine:
+          type: boolean
+          description: Признак карантина у документа
+          default: false
+        Items:
+          type: array
+          description: Таблица Товары
+          items:
+            type: object
+            required:
+              - Nomenklature
+              - PackagingCis
+              - Count
+            properties:
+              Nomenklature:
+                type: object
+                description: Номенклатура
+                required:
+                  - CodeCis
+                  - Name
+                  - Article
+                properties:
+                  CodeCis:
+                    description: Код КИС
+                    type: string
+                  Name:
+                    type: string
+                    description: Наименование
+                  Article:
+                    type: string
+                    description: Артикул
+              MarkedDeletions:
+                type: boolean
+                description: Пометка удаления
+                default: false
+              ItemCondition:
+                type: number
+                description: 'Статус номенклатуры (Код статуса, набор значений фиксирован)'
+              PartyNomenclature:
+                type: object
+                description: Партия номеклатуры
+                required:
+                  - CodeCis
+                  - Name
+                properties:
+                  CodeCis:
+                    type: string
+                    description: Идентификатор (в системе заказчика)
+                  DateExpiration:
+                    type: string
+                    description: Срок годности
+                    format: date
+                  PartyNumberCis:
+                    type: string
+                    description: Номер партии
+                  Name:
+                    type: string
+                    description: Наименование
+                  DateProduction:
+                    type: string
+                    description: Дата производства
+                    format: date
+                  AccountingCodeMarking:
+                    type: boolean
+                    description: Вести учет по кодам цифровой маркировки
+              PackagingCis:
+                type: string
+                description: Упаковка код в системе клиента
+              ContainerNumber:
+                type: string
+                description: Номер контейнера
+              PackagingCount:
+                type: number
+                description: Количество упаковок
+              Count:
+                type: number
+                description: Количество
+              Price:
+                type: number
+                description: Цена
+              Stickers:
+                type: boolean
+                description: Требуется ли стикеровка?
+              Complect:
+                type: boolean
+                description: Комплект
+              IdSpecification:
+                type: string
+                description: Спецификация
+              CodeCmt:
+                type: array
+                description: Коды ЦМТ
+                items:
+                  $ref: '#/components/schemas/CodeCmt'
+    ChangeAcceptanceQuarantineRequest:
+      title: ChangeAcceptanceQuarantineRequest
+      description: Запрос на изменение признака карантина у приемки
+      type: object
+      required:
+        - ClientIdDocument
+        - Quarantine
+      properties:
+        ClientIdDocument:
+          type: string
+          description: Номер документа (ключ)
+        Quarantine:
+          type: boolean
+          description: Признак карантина у документа
+          default: false
+    AcceptanceChangedEvent_form:
+      title: AcceptanceChangedEvent_form
+      type: object
+      required:
+        - ClientIdDocument
+        - NumberCis
+        - Status
+        - Type
+      properties:
+        ClientIdDocument:
+          type: string
+          description: Номер документа
+        NumberCis:
+          type: string
+          description: НомерКИС
+          maxLength: 25
+        Status:
+          type: string
+          description: Статус (перечисление)
+          enum:
+            - К выполнению
+            - В работе
+            - Принята
+            - Размещена
+        Type:
+          type: string
+          description: Поставщик или возврат от клиента
+        PlanDateIn:
+          type: string
+          format: date
+          description: Плановая дата поступления
+        DateIn:
+          type: string
+          format: date
+          description: Дата поступления
+        DateAcceptancesStart:
+          type: string
+          format: date
+          description: Дата старта приёмки
+        DateAcceptancesFinish:
+          type: string
+          format: date
+          description: Дата завершения приёмки
+        DateControlFinish:
+          type: string
+          format: date
+          description: Дата Завершения Контроля
+        DatePlacementFinish:
+          type: string
+          format: date
+          description: Дата Завершения Размещения
+        ClientOrderId:
+          type: string
+          description: Заказ на отгрузку (ClientIdDocument заказа на отгрузку)
+        SourceReceipts:
+          type: string
+          description: Источник поступления (поле Код справочника Источники поступления)
+        CargoSpace:
+          type: boolean
+          description: Приемка по грузовым местам
+        MarkedDeletions:
+          type: boolean
+          description: Пометка удаления
+          default: false
+        Items:
+          type: array
+          description: Таблица Товары
+          items:
+            type: object
+            required:
+              - Nomenklature
+              - Packaging
+              - ContainerNumber
+              - Count
+            properties:
+              Nomenklature:
+                type: object
+                description: Номенклатура
+                required:
+                  - CodeCis
+                  - Article
+                properties:
+                  CodeCis:
+                    description: Код КИС
+                    type: string
+                  Article:
+                    type: string
+                    description: Артикул
+              ItemCondition:
+                type: number
+                description: 'Статус номенклатуры (Код статуса, набор значений фиксирован)'
+              PartyNomenclatureCis:
+                type: string
+                description: Партия номеклатуры
+              PackagingCis:
+                type: string
+                description: Упаковка код в системе клиента
+              ContainerNumber:
+                type: string
+                description: Номер контейнера
+              PackagingCount:
+                type: number
+                description: Количество упаковок
+              Count:
+                type: number
+                description: Количество
+              Stickers:
+                type: boolean
+                description: Требуется ли стикеровка?
+              CodeCmt:
+                type: array
+                description: Коды ЦМТ
+                items:
+                  $ref: '#/components/schemas/CodeCmt'
+    UpdateShipmentOrderRequest:
+      type: object
+      required:
+        - cId
+        - counterparty
+        - planDate
+        - items
+      properties:
+        cId:
+          type: string
+          description: ИД (ключ)
+        cNumber:
+          type: string
+          description: |
+            (клиента) Номер документа
+          maxLength: 25
+        cDate:
+          type: string
+          format: date-time
+          description: |
+            (клиента) Дата документа
+        counterparty:
+          description: Контрагент
+          allOf:
+            - $ref: '#/components/schemas/Counterparty'
+        deliveryAddress:
+          type: string
+          description: Адрес доставки
+        planDate:
+          type: string
+          format: date-time
+          description: |
+            Плановая дата отгрузки
+        requiresCustomerApproval:
+          type: boolean
+          default: false
+          description: Требуется подтверждение клиента на отгрузку
+        description:
+          type: string
+          description: Комментарий
+        shipmentForm:
+          $ref: '#/components/schemas/ShipmentFormEnum'
+        contract:
+          type: object
+          description: Договор
+          required:
+            - number
+            - date
+          properties:
+            number:
+              type: string
+              description: Номер
+            date:
+              type: string
+              format: date-time
+              description: Дата
+        cBaseDocumentId:
+          type: string
+          description: (клиента) ИД документа-основания
+        requireSingleBatch:
+          type: boolean
+          description: Отгружать из одной партии
+          default: false
+        items:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required:
+              - stockItem
+              - count
+            properties:
+              stockItem:
+                description: Номенклатура
+                allOf:
+                  - $ref: '#/components/schemas/StockItem'
+              stockItemCondition:
+                type: string
+                description: Статус номенклатуры (перечисление)
+              cStockItemBatchId:
+                type: string
+                description: (клиента) ИД партии номенклатуры
+              cPackagingId:
+                type: string
+                description: (клиента) ИД упаковки
+              containerNumber:
+                type: string
+                description: Номер контейнера
+              packageCount:
+                type: number
+                description: Количество упаковок
+              count:
+                type: number
+                description: Количество
+              expirationRemainingPercent:
+                type: number
+                description: Оставшийся срок годности в процентах
+              expirationRemainingDays:
+                type: number
+                description: Оставшийся срок годности в днях
+    ApproveShipmentOrderRequest:
+      title: ApproveShipmentOrderRequest
+      description: Подтверждение отгрузки
+      type: object
+      required:
+        - cId
+        - cNumber
+        - Accept
+      properties:
+        cId:
+          type: string
+          description: ИД (ключ)
+        cNumber:
+          type: string
+          description: |
+            (клиента) Номер документа
+        Accept:
+          description: Разрешение отгрузки
+          type: boolean
+    ShipmentOrderChangedEvent:
+      title: ShipmentOrderChangedEvent
+      type: object
+      required:
+        - cId
+        - status
+        - planDate
+        - startDate
+        - planFinishDate
+        - pickFinishDate
+        - controlFinishDate
+        - packingFinishDate
+        - readyDate
+        - shipmentStartDate
+        - shipmentFinishDate
+      properties:
+        cId:
+          type: string
+          description: ИД (ключ)
+        cNumber:
+          type: string
+          description: |
+            (клиента) Номер документа
+          maxLength: 25
+        status:
+          type: string
+          description: Статус
+          enum:
+            - К планированию
+            - Спланирован
+            - Спланировано частично
+            - В отбор
+            - В отборе
+            - Отобран
+            - Упакован
+            - Готов к отгрузке
+            - Отгружен
+            - Отменен
+        tripId:
+          type: string
+          description: ИД рейса
+        cargoSpaceCount:
+          type: number
+          description: Количество грузовых мест
+        cargoSpaces:
+          description: Грузовые места
+          type: array
+          minItems: 1
+          items:
+            description: Грузовое место
+            type: object
+            required:
+              - items
+              - volume
+            properties:
+              items:
+                description: Содержимое
+                type: array
+                minItems: 1
+                items:
+                  oneOf:
+                    - title: CargoSpaceNoBoxContent
+                      description: Номенклатура без короба
+                      type: object
+                      required:
+                        - stockItem
+                        - count
+                      properties:
+                        stockItem:
+                          description: Номенклатура
+                          allOf:
+                            - $ref: '#/components/schemas/StockItem'
+                        stockItemCondition:
+                          description: Статус номенклатуры
+                          type: string
+                        count:
+                          description: 'Количество, шт.'
+                          type: integer
+                          minimum: 1
+                    - title: CargoSpaceBox
+                      description: Короб
+                      type: object
+                      required:
+                        - items
+                        - volume
+                      properties:
+                        items:
+                          description: Товар в коробе
+                          type: object
+                          required:
+                            - stockItem
+                            - count
+                          properties:
+                            stockItem:
+                              description: Номенклатура
+                              allOf:
+                                - $ref: '#/components/schemas/StockItem'
+                            stockItemCondition:
+                              description: Статус номенклатуры
+                              type: string
+                            count:
+                              description: 'Количество, шт.'
+                              type: integer
+                              minimum: 1
+                        volume:
+                          description: 'Объем, м³'
+                          type: number
+                        height:
+                          description: 'Высота, м'
+                          type: number
+                        width:
+                          description: 'Ширина, м'
+                          type: number
+                        length:
+                          description: 'Длина, м'
+                          type: number
+                        weight:
+                          description: |
+                            Масса, кг  
+                            Сумма весов брутто штук из заказа
+                          type: number
+                        barcode:
+                          description: Штрихкод
+                          type: string
+              volume:
+                description: 'Объем, м³'
+                type: number
+              height:
+                description: 'Высота, м'
+                type: number
+              width:
+                description: 'Ширина, м'
+                type: number
+              length:
+                description: 'Длина, м'
+                type: number
+              weight:
+                description: |
+                  Масса, кг  
+                  Сумма весов брутто штук из заказа
+                type: number
+              barcode:
+                description: Штрихкод
+                type: string
+        planDate:
+          type: string
+          format: date-time
+          description: Плановая дата отгрузки
+        startDate:
+          type: string
+          format: date-time
+          description: Дата начала работы по заказу
+        planFinishDate:
+          type: string
+          format: date-time
+          description: Дата завершения планирования
+        pickFinishDate:
+          type: string
+          format: date-time
+          description: Дата завершения отбора
+        controlFinishDate:
+          type: string
+          format: date-time
+          description: Дата завершения контроля
+        packingFinishDate:
+          type: string
+          format: date-time
+          description: Дата завершения упаковки
+        readyDate:
+          type: string
+          format: date-time
+          description: Дата готовоности к отгрузке
+        shipmentStartDate:
+          type: string
+          format: date-time
+          description: Дата начала отгрузки
+        shipmentFinishDate:
+          type: string
+          format: date-time
+          description: Дата завершения отгрузки
+        factItems:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required:
+              - stockItem
+              - count
+            properties:
+              stockItem:
+                description: Номенклатура
+                allOf:
+                  - $ref: '#/components/schemas/StockItem'
+              stockItemCondition:
+                type: string
+                description: Статус номенклатуры (перечисление)
+              cStockItemBatchId:
+                type: string
+                description: (клиента) ИД партии номенклатуры
+              productionDate:
+                type: string
+                format: date-time
+                description: Дата производства
+              expirationDate:
+                type: string
+                format: date-time
+                description: Дата окончания срока годности
+              packagingId:
+                type: string
+                description: ИД упаковки
+              containerNumber:
+                type: string
+                description: Номер контейнера
+              packageCount:
+                type: number
+                description: Количество упаковок
+              count:
+                type: number
+                description: Количество
+              expirationRemainingPercent:
+                type: number
+                description: Оставшийся срок годности в процентах
+              expirationRemainingDays:
+                type: number
+                description: Оставшийся срок годности в днях
+              CodeCmt:
+                type: array
+                description: Коды ЦМТ
+                items:
+                  $ref: '#/components/schemas/CodeCmt'
+    StockItemUpdate_form:
+      title: StockItemUpdate_form
+      description: Номенклатура - Запрос создания/обновления
+      type: object
+      required:
+        - CodeCis
+        - Article
+        - Name
+        - UnitCode
+        - PackagingBaseCis
+        - Barcode
+      properties:
+        CodeCis:
+          type: string
+          description: Код КИС
+        Article:
+          type: string
+          description: Артикул
+        IsGroup:
+          type: boolean
+          default: false
+          description: ЭтоГруппа
+        Name:
+          type: string
+          description: Наименование
+        Gtin:
+          type: string
+          description: GTIN
+        NomenclatureType:
+          type: string
+          description: Вид номенклатуры (поле Код справочника Виды номенклатуры)
+        UnitCode:
+          type: number
+          description: Международный код единиц измерения
+        ReserveExpiration:
+          type: number
+          description: Запас годности при отгрузке
+        ClassAbc:
+          type: string
+          description: |
+            Характеристики классов номенклатуры (классический принцип Парето):
+            - **Класс A**  
+              Доля в ассортименте: около 20%.  
+              Доля в продажах/прибыли: около 80%.  
+              Характеристика: Высокоценные, наиболее востребованные и прибыльные товары, от которых зависит благополучие компании.
+            - **Класс B**  
+                Доля в ассортименте: около 30%.  
+                Доля в продажах/прибыли: около 15%.  
+                Характеристика: Промежуточная категория товаров, требующая стабильного контроля запасов.
+            - **Класс C**  
+                Доля в ассортименте: около 50%.  
+                Доля в продажах/прибыли: около 5%.  
+                Характеристика: Товары с наименьшим вкладом в прибыль, но составляющие основную часть ассортимента.
+          enum:
+            - A
+            - B
+            - C
+        Description:
+          type: string
+          description: Комментарий
+        Complect:
+          type: boolean
+          description: Комплект
+        Weight:
+          type: number
+          description: Масса брутто
+        ReserveExpirationMin:
+          type: number
+          description: Мин. запас годности при приемке (дн.)
+        ModelAccounting:
+          type: string
+          description: Модель учета (справочник)
+        ParentCis:
+          type: string
+          description: Родитель (идентификатор)
+        Volume:
+          type: number
+          description: Объем (брутто)
+        SeasonalRatioAbc:
+          type: string
+          description: Сезонный коэфф. ABC код справочника RFL
+        TermSave:
+          type: number
+          description: Срок хранения (дн.)
+        TemperatureRegime:
+          type: string
+          description: Температурный режим код справочника RFL
+        PackagingBaseCis:
+          type: string
+          description: Базовая упаковка код КИС (общий справочник код упаковки)
+        Price:
+          type: number
+          description: Цена
+        Barcode:
+          type: string
+          description: Штрихкод
+          pattern: '[0-9]{13}'
+    ErrorTypeEnum:
+      title: ErrorTypeEnum
+      description: Типы ошибок (перечисление)
+      type: string
+      enum:
+        - Unclassified
+        - StockItemNotFoundError
+    ShipmentFormEnum:
+      title: ShipmentFormEnum
+      description: |
+        Способы отгрузки (перечисление)
+        - **palletized**: на паллетах
+        - **bulk**: навалом
+        - **mixed**: комбинированная
+      type: string
+      enum:
+        - palletized
+        - bulk
+        - mixed
+    StockItemNotFoundError:
+      type: object
+      required:
+        - NotFoundItem
+      properties:
+        NotFoundItem:
+          type: object
+          required:
+            - CodeCis
+            - Name
+            - Article
+          properties:
+            CodeCis:
+              type: string
+            Name:
+              type: string
+            Article:
+              type: string
+    Error:
+      type: object
+      description: |
+        Для ErrorType: Unclassified в ErrorMessage строка с пояснением ошибки
+        Для классифицированных ошибок в ErrorMessage ошибка соответствующего типа
+      required:
+        - ErrorType
+        - ErrorMessage
+      properties:
+        ErrorType:
+          $ref: '#/components/schemas/ErrorTypeEnum'
+        ErrorMessage:
+          oneOf:
+            - type: string
+            - $ref: '#/components/schemas/StockItemNotFoundError'
+    StatusCodeEnum:
+      description: Код статуса ответа
+      type: number
+      enum:
+        - 200
+        - 400
+        - 424
+        - 500
+    Response_form:
+      type: object
+      required:
+        - StatusCode
+      properties:
+        StatusCode:
+          $ref: '#/components/schemas/StatusCodeEnum'
+        Response:
+          oneOf:
+            - $ref: '#/components/schemas/GetStockBalancesResponse'
+        Errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Error'
+    GetStockBalancesRequest:
+      type: object
+      required:
+        - StockDate
+      properties:
+        StockDate:
+          type: string
+          format: date-time
+          description: Дата на которую сформируется отчет
+        StockItemsCis:
+          type: array
+          items:
+            type: string
+          minItems: 1
+          description: Коды КИС интересуемых позиций номенклатуры. При отсутствии данного поля возвращаются все имеющиеся позиции на складе.
+    GetStockBalancesResponse:
+      title: GetStockBalancesResponse
+      type: object
+      properties:
+        StockDate:
+          type: string
+          format: date-time
+          description: Дата на которую сформирован отчет
+        StockBalances:
+          type: array
+          description: Запрошенные остатки номенклатуры
+          items:
+            type: object
+            required:
+              - StockItem
+              - StockItemBatch
+              - ContainerName
+              - ContainerStatus
+              - Count
+              - StockItemCondition
+              - Address
+            properties:
+              StockItem:
+                type: object
+                description: Номенклатура
+                required:
+                  - CodeCis
+                  - Name
+                  - Article
+                properties:
+                  CodeCis:
+                    type: string
+                    description: Код КИС
+                  Name:
+                    type: string
+                    description: Наименование
+                  Article:
+                    type: string
+                    description: Артикул
+              StockItemBatch:
+                type: string
+                description: Партия товара
+              ContainerName:
+                type: string
+                description: Наименование контейнера
+              ContainerStatus:
+                type: string
+                description: Статус контейнера (справочник)
+              Count:
+                type: number
+                description: Количество
+              StockItemCondition:
+                type: string
+                description: Статус номенклатуры (перечисление)
+              Address:
+                type: string
+                description: Ячейка
+    GetNewChzKituExtRequest:
+      title: GetFreeChzKituExtRequest
+      type: object
+      description: Внешний запрос новых ЧЗ КИТУ
+      required:
+        - quantity
+      properties:
+        quantity:
+          description: 'Количество запрашиваемых КИТУ, шт.'
+          type: integer
+    GetNewChzKituExtReply:
+      title: GetNewChzKituExtReply
+      type: object
+      description: Внешний запрос новых ЧЗ КИТУ (ответ)
+      required:
+        - items
+      properties:
+        items:
+          description: Новые ЧЗ КИТУ
+          minimum: 1
+          type: array
+          items:
+            type: string
+    Counterparty:
+      type: object
+      description: Контрагент
+      required:
+        - Name
+        - Inn
+        - Kpp
+      properties:
+        Name:
+          type: string
+          description: Наименование
+        Inn:
+          type: string
+          description: ИНН
+        Kpp:
+          type: string
+          description: КПП
+    StockItem:
+      title: StockItem
+      type: object
+      description: Номенклатура
+      required:
+        - CodeCis
+        - Article
+      properties:
+        CodeCis:
+          description: Код КИС
+          type: string
+        Name:
+          type: string
+          description: Наименование
+        Article:
+          type: string
+          description: Артикул
+    CodeCmt:
+      type: object
+      required:
+        - BarcodeContainer
+        - TransportPackage
+      properties:
+        BarcodeContainer:
+          description: Штрихкод контейнера
+          type: string
+        TransportPackage:
+          type: array
+          items:
+            type: object
+            required:
+              - BarcodeTransportPackage
+              - Marking
+            properties:
+              BarcodeTransportPackage:
+                type: string
+                description: Штрихкод транспортной упаковки
+              Marking:
+                type: array
+                items:
+                  type: string
+                  description: Штрихкод маркировки
+    Vehicle:
+      title: Vehicle
+      description: Транспортное средство
+      type: object
+      required:
+        - registrationNumber
+      properties:
+        registrationNumber:
+          type: string
+          description: Государственный регистрационный номер
+        vehicleModel:
+          type: string
+          description: Марка и модель автомобиля
+    UpdateTripRequest:
+      type: object
+      required:
+        - cId
+        - cDate
+        - shippingDate
+        - orders
+      properties:
+        cId:
+          description: |
+            ИД (ключ)
+          type: string
+        cDate:
+          description: (клиента) Дата документа
+          type: string
+          format: date-time
+        shippingDate:
+          description: Дата отгрузки
+          type: string
+          format: date-time
+        description:
+          description: Комментарий
+          type: string
+        vehicle:
+          description: Транспортное средство
+          allOf:
+            - $ref: '#/components/schemas/Vehicle'
+        driver:
+          description: Информация о водителе
+          type: object
+          required:
+            - fullName
+          properties:
+            fullName:
+              type: string
+              description: Полное имя водителя (ФИО)
+            driverLicenseNumber:
+              type: string
+              description: Номер водительского удостоверения
+            phone:
+              type: string
+              description: Контактный номер телефона
+        orders:
+          description: Заказы на отгрузку
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required:
+              - shipmentOrderCId
+            properties:
+              shipmentOrderCId:
+                description: (клиента) ИД заказа на отгрузку
+                type: string
+              loadingSequence:
+                description: Порядковый номер в последовательности загрузки
+                type: integer
+                minimum: 1
+              descendingLoadingSequence:
+                description: Порядковый номер в последовательности загрузки в обратном порядке
+                type: integer
+                minimum: 1
+    Packaging:
+      title: Packaging
+      description: Упаковка
+      type: object
+      required:
+        - id
+        - stockItemId
+        - name
+        - ratio
+        - unitCode
+        - cargoHandlingType
+      properties:
+        id:
+          description: ИД (ключ)
+          type: string
+          maxLength: 50
+        stockItemId:
+          description: ИД номенклатуры-владельца
+          type: string
+          maxLength: 50
+        name:
+          description: Наименование
+          type: string
+        ratio:
+          description: Коэффициент (количество в упаковке)
+          type: integer
+          minimum: 1
+        height:
+          description: 'Высота, м'
+          type: number
+        width:
+          description: 'Ширина, м'
+          type: number
+        length:
+          description: 'Длина, м'
+          type: number
+        volume:
+          description: 'Объем, м³'
+          type: number
+        weight:
+          description: 'Масса, кг'
+          type: number
+        unitCode:
+          description: Единица измерения (международный справочник)
+          type: string
+        cargoHandlingType:
+          description: |
+            Тип грузообработки:
+            - **small**: мелкий
+            - **medium**: средний
+            - **pallet**: палетный
+          type: string
+          enum:
+            - small
+            - medium
+            - pallet
+        deviationPercent:
+          description: 'Допустимое отклонение, %'
+          type: number
+        typesizeCode:
+          description: |
+            Типоразмер:
+            - **10**: Блок/Спайка  
+              Грузообработка допускается, хранение в коробках
+            - **20**: Короб  
+              Грузообработка средняя (непаллетная)
+            - **30**: Паллета EUR  
+              Габариты 80*120 по основанию, высота до 180 см. Грузообработка паллетная
+            - **40**: Паллета USA  
+              Габариты 120*120 по основанию, высота до 180 см. Грузообработка паллетная
+            - **50**: Паллета FIN  
+              Габариты 100*120 по основанию, высота до 180 см. Грузообработка паллетная
+            - **60**: Негабарит  
+              Негабаритный товар. Хранится в напольных ячейках
+          type: string
+          enum:
+            - '10'
+            - '20'
+            - '30'
+            - '40'
+            - '50'
+            - '60'
+        barcode:
+          description: Штрихкод
+          type: string
+    SetBatchRequest:
+      title: SetBatchRequest
+      description: Запрос на обновление/добавление Партии
+      type: object
+      required:
+        - codeCis
+        - ownerCis
+        - name
+      properties:
+        codeCis:
+          description: ИД (ключ)
+          type: string
+        ownerCis:
+          description: ИД владельца
+          type: string
+        name:
+          description: Наименование
+          type: string
+        productionDate:
+          description: Дата производства
+          type: string
+          format: date
+        expirationDate:
+          description: Срок годности
+          type: string
+          format: date
+        batchNumberCis:
+          description: Номер партии
+          type: string
+        entranceDocNumber:
+          description: Номер документа поступления
+          type: string
+        gtdNumber:
+          description: Номер ГТД
+          type: string
+        certificateNumber:
+          description: Номер сертификата
+          type: string
+        unitCode:
+          description: Единица измерения (международный справочник)
+          type: string
+        codeCMT:
+          description: Вести учет по кодам цифровой маркировки
+          type: boolean
+    Task:
+      title: Task
+      description: Задание складской операции
+      type: object
+      required:
+        - numberCis
+      properties:
+        numberCis:
+          type: string
+          description: Номер задания (ключ)
+        counterparty:
+          description: Контрагент
+          allOf:
+            - $ref: '#/components/schemas/Counterparty'
+        documentСis:
+          description: 'Номер КИС, если нет - внутренний номер'
+          type: string
+        staffId:
+          description: Код исполнителя
+          type: string
+        finishTime:
+          description: Дата и время выполнения
+          type: string
+        operationMode:
+          description: Контейнер или товар или пересчёт или что-то ещё
+          type: string
+        taskType:
+          description: Тип задачи
+          type: string
+    SetContainerRequest:
+      title: SetContainerRequest
+      description: Запрос на обновление/добавление Контейнера
+      type: object
+      required:
+        - incomingNumber
+      properties:
+        incomingNumber:
+          description: Входящий номер (ключ)
+          type: string
+        status:
+          description: Статус (справочник)
+          type: string
+        containerType:
+          description: Тип контейнера (справочник)
+          type: string
