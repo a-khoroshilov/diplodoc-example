@@ -1,20 +1,10 @@
-title: Шаблон проекта документации
+title: RFL API doc
 href: index.yaml
 items: 
-  - name: О проекте
-    href: about.md
-  - name: Дополнительная страница
-    href: page.md
-  - name: Другая страница
-    href: anotherpage.md
   - name: OpenAPI
     include:
-        path: rfl-api-doc-1-0-18
+        path: rfl-api-doc
         includers:
           - name: openapi
-            input: rfl-api-doc-1-0-18-0904.yaml
+            input: rfl-api-doc.yaml
         mode: link
-  - name: Подраздел
-    include:
-      path: sub-section/toc.yaml
-      mode: link
