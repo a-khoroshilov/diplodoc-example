@@ -4,10 +4,10 @@ on:
   workflow_dispatch:
   pull_request:
     types: [closed]
-    branches:    
+    branches:
       - main
   push:
-    paths: 
+    paths:
       - 'docs/**'
     tags:
       - 'v*.*.*'
