@@ -1,11 +1,11 @@
 openapi: 3.0.3
 info:
   title: RFL API doc
-  version: 1.0.18-0904
+  version: 1.0.19
   description: |
-    _Редакция от 2025.09.04_
+    _Редакция от 2025.09.09_
 
-    [Все версии](./)
+    [Предыдущие версии](http://esb.fresh-logic.ru:9099/)
 
     [Справочники](https://freshlogic.bitrix24.ru/~JFlWr)
 
@@ -43,7 +43,6 @@ tags:
   - name: Номенклатура
   - name: Отчеты
   - name: Прочее
-  - name: '--------'
 paths:
   /AcceptanceUpdate:
     post:
@@ -680,7 +679,7 @@ components:
       required: true
       schema:
         type: string
-        example: 1.0.18
+        example: 1.0.19
   schemas:
     AcceptanceUpdate_form:
       title: AcceptanceUpdate_form

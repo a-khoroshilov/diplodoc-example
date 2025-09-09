@@ -7,11 +7,10 @@ on:
     branches:    
       - main
   push:
-    branches:
-      - 'main'
-      - 'v1.0.19'
     paths: 
       - 'docs/**'
+    tags:
+      - 'v*.*.*'
 
 jobs:
   check-env:
