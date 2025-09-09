@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: RFL API doc
-  version: 1.0.19
+  version: 1.0.20
   description: |
     _Редакция от 2025.09.09_
 
